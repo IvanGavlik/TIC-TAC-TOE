@@ -22,10 +22,6 @@ public class GameServiceImpl implements GameService {
 
 	private HashMap<Integer, Game> games = new HashMap<>();
 	private static int gameCounter = 0;
-	private static final String COMPUTER = "computer";
-	private static final String LEVEL_EASY = "easy";
-	private static final String LEVEL_HARD = "hard";
-	private static final String ALL_PLAYERS = "all";
 
 	@Autowired
 	private ComputerService computerService;
@@ -37,13 +33,17 @@ public class GameServiceImpl implements GameService {
 	@Override
 	public GameId inicializeGame(String player1, String player2, String level) {
 		Game game = new Game();
-
+		
+		if(player1.equals(COMPUTER) && player2.equals(COMPUTER)) {
+			throw new RuntimeException(); //TODO BAD REQUEST
+		}
+		
 		if (player1.equals(COMPUTER)) {
-			game.setPlayerX(new Player(COMPUTER));
-			game.setPlayerO(new Player(player2));
+			game.setFirstPlayer(new Player(COMPUTER));
+			game.setSecondPlayer(new Player(player2));
 		} else {
-			game.setPlayerX(new Player(player1));
-			game.setPlayerO(new Player(COMPUTER));
+			game.setFirstPlayer(new Player(player1));
+			game.setSecondPlayer(new Player(COMPUTER));
 		}
 
 		if (level.equals(LEVEL_EASY) || level.equals(LEVEL_HARD)) {
@@ -65,7 +65,7 @@ public class GameServiceImpl implements GameService {
 
 		Game currentGame = games.get(id);
 		if (currentGame == null) {
-			// TODO Auto-generated method stub
+			throw new RuntimeException(); //TODO BAD REQUEST
 		}
 
 		GameInfo gameStatusData;
@@ -85,11 +85,11 @@ public class GameServiceImpl implements GameService {
 
 		Game currentGame = games.get(gameId);
 		if (currentGame == null) {
-			return;
+			throw new RuntimeException(); //TODO BAD REQUEST
 		}
 
 		if (isMoveValid(currentGame.getBoard(), row, column)) {
-			computerService.playMove(currentGame);
+			computerService.playMove(currentGame,row,column);
 		}
 
 	}
@@ -98,7 +98,7 @@ public class GameServiceImpl implements GameService {
 
 		if (checkInputPositionCordinates(row) && checkInputPositionCordinates(column)) {
 
-			if (board[row][column] == null) {
+			if (board[row][column] == ComputerService.EMPTHY) {
 				return true;
 			}
 
@@ -107,10 +107,10 @@ public class GameServiceImpl implements GameService {
 	}
 
 	private boolean checkInputPositionCordinates(int position) {
-		if (position < 0 && position >= 4) {
-			return false;
+		if (position >= 0 && position <= 3) {
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	@Override
@@ -122,11 +122,11 @@ public class GameServiceImpl implements GameService {
 
 			for (Game game : games.values()) {
 
-				if (!game.getPlayerX().equals(COMPUTER)) {
-					players.add(game.getPlayerX());
+				if (!game.getFirstPlayer().equals(COMPUTER)) {
+					players.add(game.getFirstPlayer());
 				}
-				if (!game.getPlayerO().equals(COMPUTER)) {
-					players.add(game.getPlayerO());
+				if (!game.getSecondPlayer().equals(COMPUTER)) {
+					players.add(game.getSecondPlayer());
 				}
 			}
 
@@ -134,11 +134,11 @@ public class GameServiceImpl implements GameService {
 
 			for (Game game : games.values()) {
 
-				if (!game.getPlayerX().equals(COMPUTER) && game.getPlayerX().equals(playerName)) {
-					players.add(game.getPlayerX());
+				if (!game.getFirstPlayer().equals(COMPUTER) && game.getFirstPlayer().equals(playerName)) {
+					players.add(game.getFirstPlayer());
 				}
-				if (!game.getPlayerO().equals(COMPUTER) && game.getPlayerX().equals(playerName)) {
-					players.add(game.getPlayerO());
+				if (!game.getFirstPlayer().equals(COMPUTER) && game.getFirstPlayer().equals(playerName)) {
+					players.add(game.getFirstPlayer());
 				}
 			}
 

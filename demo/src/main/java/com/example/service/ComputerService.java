@@ -5,10 +5,10 @@ import com.example.model.Game;
 
 public interface ComputerService {
 	
-	public final static String X = "X";
-	public final static String O = "O";
-	public final static String EMPTHY = "";
-	public final static String COMP = "AI";
+	static final String X = "X";
+	static final String O = "O";
+	static final String EMPTHY = "";
+	static final int BOARD_LENGTH = 3;
 	
-	void playMove(Game game);
+	void playMove(Game game,int row,int column);
 }

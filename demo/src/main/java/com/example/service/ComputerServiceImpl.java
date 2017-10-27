@@ -1,267 +1,315 @@
 package com.example.service;
 
-import java.util.Arrays;
-
 import org.springframework.stereotype.Service;
 
+import com.example.helper.BoardState;
 import com.example.model.Game;
-import com.example.model.Player;
 
 @Service
 public class ComputerServiceImpl implements ComputerService {
-
-	private class Move {
-
-		public Move() {
-
-		}
-
-		public Move(int moveQuality, String value) {
-			this.moveQuality = moveQuality;
-			this.value = value;
-		}
-
-		int row;
-		int column;
-		int moveQuality;
-		String value;
-	}
-
-	Player playerX;
-	Player playerO;
-
 	
-	
+	// TODO SMISLIT NACIN KAKO PROVJERITI ZA POBJEDU, NEKA SE RADI JEDNOM
 	@Override
-	public void playMove(Game game) {
-
-		playerX = game.getPlayerX();
-		playerO = game.getPlayerO();
-
-		int bestMove =	minMax(game.board2, game.getCurrentPlayer());
-		System.out.println("best move: " + bestMove);
-		System.out.println("best move index: " + bestMoveGAME.row + " VAL=  " + bestMoveGAME.value);	
-	
+	public void playMove(Game game,int row, int column) {
+		
+		BoardState boardState = new BoardState();
+		boardState.populateBoard(game.getBoard());
+		
+		BoardState board = max(boardState);
+		
+		// treba gledati i trenutnog igraca
+		// iz gamea kreirati stanje 
+		// indeki is gamea da updejtas game
+		// u stanje staviti dali imamo pobjdnika i s time isto updejatatai game
+		
+		// BoardState s = max(new BoardState());
+		//System.out.println("MAX r,c: " + s.r + " " + s.c);
 	}
 
-	Move bestMoveGAME;
-	
-	private int minMax(String[] borard, Player currentPlayer) {
-		System.out.println("	calculate: " + Arrays.deepToString(borard));
-		
-		int gameStatus = chechVictory(borard);
-		if(gameStatus != -1) {
-			return gameStatus;
+	private static BoardState max(BoardState state) {
+		if (chechVictory(state)) {
+			return state;
 		}
-		
-		int bestMove = 0;
-		for (int x = 0; x < borard.length; x++) {
 
-			if (borard[x] == "") {
-				
-				Move newMove = new Move();
-				newMove.row = x;
-				newMove.value = (currentPlayer.equals(playerX)) ? "X" : "O";
-				borard[x] = newMove.value;
+		BoardState maxState = new BoardState(-1000);
+		for (int x = 0; x < BOARD_LENGTH; x++) {
+			for (int y = 0; y < BOARD_LENGTH; y++) {
 
-				if (currentPlayer.equals(playerX)) {
-					int bestScorre = -1000000;
-					int score = minMax(borard, playerO);
-					
-					if (score > bestScorre) {
-						bestMoveGAME = newMove;
-						bestMove = x;
-						score = bestScorre;
+				if (state.getBoard()[x][y] == EMPTHY) {
+
+					BoardState newState = new BoardState();
+					newState.populateBoard(state.getBoard());		
+					newState.setBoardValue(x, y, X);
+					newState.setRowAndColumn(x, y);
+
+					BoardState tempStanje = min(newState);
+					if (tempStanje.getState() > maxState.getState()) {
+						maxState = tempStanje;
 					}
 
-				} else {
-
-					int bestScorre = 1000000;
-					int score = minMax(borard, playerX);
-
-					if (score < bestScorre) {
-						bestMoveGAME = newMove;
-						bestMove = x;
-						bestScorre = score;
-					}
 				}
-				borard[x]= "";
+			}
+		}
+		// System.out.println("\n" + Arrays.deepToString(maxStanje.getBoard()) + "	Max rez: " + maxStanje.s);
+		return maxState;
+	}
+
+	private static BoardState min(BoardState state) {
+		if (chechVictory(state)) {
+			return state;
+		}
+
+		BoardState minState = new BoardState(-10000);
+		for (int x = 0; x < BOARD_LENGTH; x++) {
+			for (int y = 0; y < BOARD_LENGTH; y++) {
+
+				if (state.getBoardValue(x, y) == EMPTHY) {
+
+					BoardState newState = new BoardState();
+					newState.populateBoard(state.getBoard());
+					newState.setBoardValue(x, y, O);
+					newState.setRowAndColumn(x, y);
+					
+					BoardState tempState = max(newState);
+					if (minState.getState() < tempState.getState()) {
+						minState = tempState;
+					}
+
+				}
+
+			}
+
+		}
+		// System.out.println("\n" + Arrays.deepToString(minStanje.getBoard()) + "	Min rez: " + minStanje.s);
+		return minState;
+	}
+
+	// TODO POBOLJSATI 
+	private static boolean chechVictory(BoardState state) {
+
+		int notEmpty = 0;
+		for (int i = 0; i < BOARD_LENGTH; i++) {
+			
+			
+			if (state.getBoardValue(i, 0) == X && state.getBoardValue(i, 1) == X && state.getBoardValue(i, 2) == X) {
+				state.setState(10);
+				return true;
+			}
+
+			if (state.getBoardValue(i, 0) == O && state.getBoardValue(i, 1) == O && state.getBoardValue(i, 2) == O) {
+				state.setState(10);
+				return true;
+			}
+
+			if(state.getBoardValue(0, i) == X && state.getBoardValue(1, i) == X && state.getBoardValue(2, i) == X) {
+				state.setState(10);
+				return true;
+			}
+
+			if (state.getBoardValue(0, i) == O && state.getBoardValue(1, i) == O && state.getBoardValue(2, i) == O) {
+				state.setState(10);
+				return true;
+			}
+
+			for (int j = 0; j < BOARD_LENGTH; j++) {
+				if (state.getBoard()[i][j] == EMPTHY) {
+					notEmpty += 1;
+				}
 
 			}
 		}
+
+		if (notEmpty == 9) {
+			state.setState(0);
+			return true;
+		}
+
 		
-		return bestMove;
+		if (state.getBoardValue(0, 0) == X && state.getBoardValue(1, 1) == X && state.getBoardValue(2, 2)  == X) {
+			state.setState(10);
+			return true;
+		}
+
+		if (state.getBoardValue(0, 0) == O && state.getBoardValue(1, 1) == O && state.getBoardValue(2, 2)  == O) {
+			state.setState(10);
+			return true;
+		}
+
+		if (state.getBoardValue(0, 2) == X && state.getBoardValue(1, 1) == X && state.getBoardValue(2, 0)  == X) {
+			state.setState(10);
+			return true;
+		}
+
+		if (state.getBoardValue(0, 2) == O && state.getBoardValue(1, 1) == O && state.getBoardValue(2, 0)  == O) {
+			state.setState(10);
+			return true;
+		}
+
+		return false;
 	}
 
-
-	private int chechVictory(String[] borard) {
-		
-		if (borard[0] == "X" && borard[1] == "X") {
-			return 10;
-		}
-
-		if (borard[2] == "X" && borard[1] == "X") {
-			return 10;
-		}
-
-		if (borard[0] == "O" && borard[1] == "O") {
-			return 10;
-		}
-
-		if (borard[2] == "O" && borard[1] == "O") {
-			return 10;
-		}
-
-		if (borard[2] != "" && borard[1] != "" && borard[0] != "") {
-			return 0; // DRAW
-		} else {
-			return -1; // COUNTINE
-		}
-		
-	}
 	
-	
-	
-	// old
 	
 	
 	/*
-	private Move minMax(String[][] borard, Player currentPlayer) {
-		System.out.println("	calculate: " + Arrays.deepToString(borard));
+	
+	
+	private static class Stanje {
+		int s;
+		String[][] board = {{ EMPTHY, EMPTHY, EMPTHY },
+							{ EMPTHY, EMPTHY, EMPTHY }, 
+							{ EMPTHY, EMPTHY, EMPTHY }};
+		int r;
+		int c;
 
-		int winer = chechVictory(borard);
-		switch (winer) {
-		case 0:
-			return new Move(0, "hm"); // draw
-		case 10:
-			new Move(10, "X"); // comp
-		case -10:
-			return new Move(-10, "O"); // user
+		Stanje() {
+			this.s = 0;
 		}
 
-		List<Move> moves = new ArrayList<>();
-		for (int x = 0; x < borard.length; x++) {
-			for (int y = 0; y < borard.length; y++) {
+		Stanje(int v) {
+			this.s = v;
+		}
 
-				if (borard[x][y] == "") {
+		void populateBoard(String[][] newBoard) {
+			board[0][0] = newBoard[0][0];
+			board[0][1] = newBoard[0][1];
+			board[0][2] = newBoard[0][2];
 
-					Move newMove = new Move();
-					newMove.row = x;
-					newMove.column = y;
-					newMove.value = (currentPlayer.equals(playerX)) ? "X" : "O";
+			board[1][0] = newBoard[1][0];
+			board[1][1] = newBoard[1][1];
+			board[1][2] = newBoard[1][2];
 
-					if (currentPlayer.equals(playerX)) {
-						newMove.moveQuality = minMax(borard, playerO).moveQuality;
-					} else {
-						newMove.moveQuality = minMax(borard, playerX).moveQuality;
+			board[2][0] = newBoard[2][0];
+			board[2][1] = newBoard[2][1];
+			board[2][2] = newBoard[2][2];
+		}
+	}
+
+
+	private static Stanje max(Stanje stanje) {
+		if (chechVictory(stanje)) {
+			return stanje;
+		}
+
+		Stanje maxStanje = new Stanje(-1000);
+		for (int x = 0; x < BOARD_LENGTH; x++) {
+			for (int y = 0; y < BOARD_LENGTH; y++) {
+
+				if (stanje.board[x][y] == EMPTHY) {
+
+					Stanje novoStanje = new Stanje();
+					novoStanje.populateBoard(stanje.board);
+
+					novoStanje.board[x][y] = X;
+					novoStanje.r = x;
+					novoStanje.c = y;
+
+					Stanje tempStanje = min(novoStanje);
+					if (tempStanje.s > maxStanje.s) {
+						maxStanje = tempStanje;
 					}
 
-					moves.add(newMove);
-					// borard[x][y] = "";
 				}
-
 			}
 		}
-
-		Move bestMove = null;
-		int bestScorre = -1000000;
-		if (currentPlayer.getName().equals("computer")) { // get +10
-
-			for (Move move : moves) {
-				if (move.moveQuality > bestScorre) {
-					bestMove = move;
-					bestScorre = move.moveQuality;
-				}
-			}
-
-		} else { // get -10
-			bestScorre = 1000000;
-
-			for (Move move : moves) {
-				if (move.moveQuality < bestScorre) {
-					bestMove = move;
-					bestScorre = move.moveQuality;
-				}
-			}
-
-		}
-
-		return bestMove;
+		System.out.println("\n" + Arrays.deepToString(maxStanje.board) + "	Max rez: " + maxStanje.s);
+		return maxStanje;
 	}
 
-	// 0, 1, 2
-	private int chechVictory(String[][] borard) {
-		int numX = 0;
-		int numO = 0;
-		int numberOfInuts = 0;
-
-		for (int x = 0; x < borard.length; x++) {
-			for (int y = 0; y < borard.length; y++) {
-
-				if (borard[x][y].equals("X")) {
-					numX += 1;
-					numberOfInuts++;
-				}
-
-				if (borard[x][y].equals("O")) {
-					numO += 1;
-					numberOfInuts = 0;
-				}
-
-			}
-
-			if (numX == 3) {
-				return 10;
-			}
-			if (numO == 3) {
-				return -10;
-			}
+	private static Stanje min(Stanje stanje) {
+		if (chechVictory(stanje)) {
+			return stanje;
 		}
 
-		if (numberOfInuts == 9 || numberOfInuts == 6) {
-			return 0; // draw
-		}
+		Stanje minStanje = new Stanje(-10000);
+		for (int x = 0; x < BOARD_LENGTH; x++) {
+			for (int y = 0; y < BOARD_LENGTH; y++) {
 
-		for (int x = 0; x < borard.length; x++) {
-			for (int y = 0; y < borard.length; y++) {
+				if (stanje.board[x][y] == EMPTHY) {
 
-				if (borard[y][x].equals("X")) {
-					numX += 1;
-				}
+					Stanje novoStanje = new Stanje();
+					novoStanje.populateBoard(stanje.board);
 
-				if (borard[y][x].equals("O")) {
-					numO += 1;
+					novoStanje.board[x][y] = O;
+					novoStanje.r = x;
+					novoStanje.c = y;
+
+					Stanje tempStanje = max(novoStanje);
+					if (minStanje.s < tempStanje.s) {
+						minStanje = tempStanje;
+					}
+
 				}
 
 			}
 
-			if (numX == 3) {
-				return 10;
-			}
-			if (numO == 3) {
-				return -10;
-			}
 		}
-
-		if (borard[0][0] == "X" && borard[1][1] == "X" && borard[2][2] == "X") {
-			return 10;
-		}
-
-		if (borard[0][0] == "O" && borard[1][1] == "O" && borard[2][2] == "O") {
-			return -10;
-		}
-
-		if (borard[0][2] == "X" && borard[1][1] == "X" && borard[2][0] == "X") {
-			return 10;
-		}
-
-		if (borard[0][2] == "O" && borard[1][1] == "O" && borard[2][0] == "O") {
-			return -10;
-		}
-
-		return -1; // in progres
-
+		System.out.println("\n" + Arrays.deepToString(minStanje.board) + "	Min rez: " + minStanje.s);
+		return minStanje;
 	}
-	*/
 
+	// TODO POBOLJSATI 
+	private static boolean chechVictory(Stanje stanje) {
+
+		int notEmpty = 0;
+		for (int i = 0; i < BOARD_LENGTH; i++) {
+
+			if (stanje.board[i][0] == X && stanje.board[i][1] == X && stanje.board[i][2] == X) {
+				stanje.s = 10;
+				return true;
+			}
+
+			if (stanje.board[i][0] == O && stanje.board[i][1] == O && stanje.board[i][2] == O) {
+				stanje.s = 10;
+				return true;
+			}
+
+			if (stanje.board[0][i] == X && stanje.board[1][i] == X && stanje.board[2][i] == X) {
+				stanje.s = 10;
+				return true;
+			}
+
+			if (stanje.board[0][i] == O && stanje.board[1][i] == O && stanje.board[2][i] == O) {
+				stanje.s = 10;
+				return true;
+			}
+
+			for (int j = 0; j < BOARD_LENGTH; j++) {
+				if (stanje.board[i][j] == EMPTHY) {
+					notEmpty += 1;
+				}
+
+			}
+		}
+
+		if (notEmpty == 9) {
+			stanje.s = 0;
+			return true;
+		}
+
+		if (stanje.board[0][0] == X && stanje.board[1][1] == X && stanje.board[2][2] == X) {
+			stanje.s = 10;
+			return true;
+		}
+
+		if (stanje.board[0][2] == X && stanje.board[1][1] == X && stanje.board[2][0] == X) {
+			stanje.s = 10;
+			return true;
+		}
+
+		if (stanje.board[0][0] == O && stanje.board[1][1] == O && stanje.board[2][2] == O) {
+			stanje.s = 10;
+			return true;
+		}
+
+		if (stanje.board[0][2] == O && stanje.board[1][1] == O && stanje.board[2][0] == O) {
+			stanje.s = 10;
+			return true;
+		}
+
+		return false;
+	}
+
+	
+*/
 }
