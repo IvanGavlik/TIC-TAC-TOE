@@ -4,6 +4,7 @@ public class Game {
 
 	private int gameId;
 	private String[][] board = { { "", "", "" }, { "", "", "" }, { "", "", "" } };
+	public String[] board2 = { "", "", "" };
 	private Player playerX;
 	private Player playerO;
 	private GameStatus gameStatus;

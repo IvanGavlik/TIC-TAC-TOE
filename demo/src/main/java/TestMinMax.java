@@ -21,14 +21,18 @@ public class TestMinMax {
 		String[][] board = { { "O", "", "" }, { "", "", "" }, { "", "", "" } };
 		game.initBoard(board);
 		game.setBoard(board);
+	
+		game.board2[0] = "O";
+		game.board2[1] = "";
+		game.board2[2] = "";
 		
 		game.setPlayerO(new Player("Ivan"));
 		game.setPlayerX(new Player("computer"));
 		game.setCurrentPlayer(game.getPlayerO());
 		
-		System.out.println("start: " + Arrays.deepToString(game.getBoard()));
+		System.out.println("start: " + Arrays.deepToString(game.board2));
 		comp.playMove(game);
-		
+		System.out.println("end");
 	}
 
 }
