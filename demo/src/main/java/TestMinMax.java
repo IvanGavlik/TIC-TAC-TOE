@@ -23,12 +23,12 @@ public class TestMinMax {
 		game.setBoard(board);
 	
 		game.board2[0] = "O";
-		game.board2[1] = "";
+		game.board2[1] = "X";
 		game.board2[2] = "";
 		
 		game.setPlayerO(new Player("Ivan"));
 		game.setPlayerX(new Player("computer"));
-		game.setCurrentPlayer(game.getPlayerO());
+		game.setCurrentPlayer(game.getPlayerX());
 		
 		System.out.println("start: " + Arrays.deepToString(game.board2));
 		comp.playMove(game);
